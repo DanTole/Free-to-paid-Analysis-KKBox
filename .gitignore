@@ -1,0 +1,6 @@
+/data/raw/*
+/data/cache/
+/docs/designs/*
+.venv/
+__pycache__/
+.pytest_cache/
