@@ -106,7 +106,7 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
         Stage(
             "completeness",
             "src.completeness:run",
-            constants=("GAP_REFERENCE_WEEKS", "GAP_RELATIVE_DROP"),
+            constants=("BEHAVIOR_WINDOW_DAYS", "GAP_REFERENCE_WEEKS", "GAP_RELATIVE_DROP"),
             upstream=("trials", "logs"),
         ),
         Stage(
