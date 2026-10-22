@@ -1,7 +1,7 @@
 r"""Pipeline runner with hash-stamped stage caches (eng review D5).
 
 Usage:
-    python -m src.pipeline ingest|model|bootstrap|all
+    python -m src.pipeline ingest|stage1|logs|model|bootstrap|all
     python -m src.pipeline status
 
 Each stage writes data/cache/<stage>.meta.json after it succeeds. The meta
@@ -17,9 +17,13 @@ so does everything downstream of them.
 
 Targets group the stages so the expensive bootstrap never runs implicitly:
 
-    ingest -> trials -> logs -> completeness       (target: ingest)
+    ingest -> trials                               (target: ingest)
+    mix -> stage1                                  (target: stage1, Day 1 "who")
+    logs -> completeness                           (target: logs, the 30 GB scan)
     features -> model ----------> charts -> page   (target: model)
                    \-> bootstrap -/                (target: bootstrap)
+
+Day 1 runs `ingest` then `stage1` without touching the listening logs.
 
 A target runs its stale stages in order. If a stage needs an upstream stage
 from another target and that stage is stale, the run stops and names the
@@ -80,15 +84,32 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
             constants=(
                 "TRIAL_PLAN_DAYS",
                 "TRIAL_AMOUNT_PAID",
-                "TRIAL_LENGTH_DAYS",
                 "TRIAL_EXPIRE_MIN_OFFSET_DAYS",
                 "TRIAL_EXPIRE_MAX_OFFSET_DAYS",
                 "BURN_IN_START",
-                "MAX_REGISTRATION_LAG_DAYS",
+                "REQUIRE_MEMBER_ROW",
                 "CONVERSION_WINDOW_DAYS",
                 "FOLLOWUP_END",
             ),
             upstream=("ingest",),
+        ),
+        Stage(
+            "mix",
+            "src.mix:run",
+            constants=(
+                "TOP_CITIES",
+                "MIN_VALID_AGE",
+                "MAX_VALID_AGE",
+                "AGE_BAND_UPPER_BOUNDS",
+                "REG_LAG_BAND_LOWER_BOUNDS_DAYS",
+            ),
+            upstream=("ingest", "trials"),
+        ),
+        Stage(
+            "stage1",
+            "src.stage1:run",
+            constants=("MIN_CAMPAIGN_TRIALS", "MIN_MIX_LEVEL_TRIALS"),
+            upstream=("trials", "mix"),
         ),
         Stage(
             "logs",
@@ -112,14 +133,7 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
         Stage(
             "features",
             "src.features:run",
-            constants=(
-                "TOP_CITIES",
-                "MIN_VALID_AGE",
-                "MAX_VALID_AGE",
-                "AGE_BAND_UPPER_BOUNDS",
-                "REG_LAG_BAND_LOWER_BOUNDS_DAYS",
-            ),
-            upstream=("ingest", "trials", "logs", "completeness"),
+            upstream=("trials", "mix", "logs", "completeness"),
         ),
         Stage(
             "model",
@@ -141,7 +155,7 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
             "charts",
             "src.charts:run",
             constants=("MIN_PUBLISHED_CELL",),
-            upstream=("trials", "completeness", "model", "bootstrap"),
+            upstream=("trials", "stage1", "completeness", "model", "bootstrap"),
         ),
         Stage(
             "page",
@@ -153,7 +167,9 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
 
 
 TARGETS = {
-    "ingest": ("ingest", "trials", "logs", "completeness"),
+    "ingest": ("ingest", "trials"),
+    "stage1": ("mix", "stage1"),
+    "logs": ("logs", "completeness"),
     "model": ("features", "model", "charts", "page"),
     "bootstrap": ("bootstrap",),
 }

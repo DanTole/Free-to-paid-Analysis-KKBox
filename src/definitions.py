@@ -25,18 +25,28 @@ USER_LOGS_FILES = ("user_logs.csv", "user_logs_v2.csv")
 # Trial = payment_plan_days == 7, actual_amount_paid == 0, is_cancel == 0.
 TRIAL_PLAN_DAYS = 7
 TRIAL_AMOUNT_PAID = 0
-# Trial end = trial start + 7 days (fixed rule, not membership_expire_date).
-TRIAL_LENGTH_DAYS = 7
-# membership_expire_date is validation only: outside [start+6, start+8] -> excluded.
-TRIAL_EXPIRE_MIN_OFFSET_DAYS = 6
-TRIAL_EXPIRE_MAX_OFFSET_DAYS = 8
+# Trial end = the trial row's membership_expire_date. Trials expiring outside
+# [start+5, start+31] are excluded. Changed 2026-10-22 (user-approved) from a
+# fixed start+7 with expiry in [start+6, start+8], which dropped 47% of
+# first-transaction trials, including every 2016-06..09 trial (median expiry
+# start+5) [measured: read-only probe of transactions.csv].
+TRIAL_EXPIRE_MIN_OFFSET_DAYS = 5
+TRIAL_EXPIRE_MAX_OFFSET_DAYS = 31
 
 # --- New-user trial filters --------------------------------------------------
-# 3-month burn-in after transactions.csv starts (2015-01), so earlier activity
-# is not invisible to the first-transaction test.
+# New user = the trial is the user's first transaction in the files, and it
+# starts after a 3-month burn-in (transactions.csv starts 2015-01), so earlier
+# activity is not invisible to the first-transaction test. The design's
+# "registered <= 60 days before the trial" filter was dropped 2026-10-22
+# (user-approved): it kept only 11% of first-transaction trials, because most
+# trialists registered a free account months or years earlier [measured].
 BURN_IN_START = date(2015, 4, 1)
-# registration_init_time at most this many days before trial start (or missing).
-MAX_REGISTRATION_LAG_DAYS = 60
+# Trialists with no row in members_v3.csv are excluded (user-approved
+# 2026-10-22). 47,425 of 377,481 eligible trialists had none, and 11 of them
+# converted (0.02%, near zero in every campaign) [measured], which suggests the
+# members file drops accounts that never paid: an outcome-driven signal, not
+# who the campaign reached.
+REQUIRE_MEMBER_ROW = True
 
 # --- Conversion and follow-up ------------------------------------------------
 # Converted = paid (actual_amount_paid > 0), non-cancel transaction dated in
@@ -49,8 +59,9 @@ CONVERSION_WINDOW_DAYS = 30
 FOLLOWUP_END = date(2017, 2, 28)
 
 # --- Behavior window and log validity ----------------------------------------
-# Behavior = trial days 0..6, i.e. [start, trial end - 1].
-BEHAVIOR_WINDOW_DAYS = 7
+# Behavior = trial days 0..4 for every user: the shortest kept trial lasts 5
+# days, so a 5-day window never reaches past any trial's end (2026-10-22).
+BEHAVIOR_WINDOW_DAYS = 5
 # D7: a log row with total_secs outside [0, 86400] keeps its song counts but its
 # seconds become missing; the user is flagged.
 MIN_VALID_TOTAL_SECS = 0
@@ -58,15 +69,20 @@ MAX_VALID_TOTAL_SECS = 86_400
 
 # --- Mix (who) ---------------------------------------------------------------
 TOP_CITIES = 10
+# Stage 1 drops trials in any mix level with fewer trials than this, and
+# reports them. A 1-trial signup channel and 6 trials registered after their
+# trial started never converted, which stopped the model from converging.
+MIN_MIX_LEVEL_TRIALS = 100
 # bd <= 0, > 80 or missing -> "unknown".
 MIN_VALID_AGE = 1
 MAX_VALID_AGE = 80
 # Age bands as upper bounds: <=24, 25-34, 35+ (plus "unknown").
 AGE_BAND_UPPER_BOUNDS = (24, 34)
-# Registration-to-trial lag bands, lower bounds in days: 0-6, 7-29, 30-60
-# (plus "missing"). The design doc names the variable but not its bands; these
-# were chosen when this file was written and can be changed here.
-REG_LAG_BAND_LOWER_BOUNDS_DAYS = (0, 7, 30)
+# Registration-to-trial lag bands, lower bounds in days: 0-60, 61-365,
+# 366-1095 (1-3 y), 1096+ (>3 y), plus "missing" (no member row, no
+# registration date, or registration after the trial started). User-approved
+# 2026-10-22 together with dropping the 60-day filter.
+REG_LAG_BAND_LOWER_BOUNDS_DAYS = (0, 61, 366, 1096)
 
 # --- Log completeness (Day 2) ------------------------------------------------
 # Gap day: zero distinct log users, or the paying-member active share falls more

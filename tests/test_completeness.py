@@ -8,6 +8,7 @@ import duckdb
 import pandas as pd
 
 from src import completeness
+from src import definitions as d
 from src.logs import sql_path
 from tests.conftest import days, write_trials
 
@@ -16,6 +17,8 @@ ZERO_DAY = date(2016, 2, 10)  # no log users at all
 DROP_32 = date(2016, 2, 11)  # share 0.34 vs 0.50 reference: 32% drop -> gap
 DROP_28 = date(2016, 2, 12)  # share 0.36 vs 0.50 reference: 28% drop -> not a gap
 LAST_LOG_DAY = date(2016, 3, 31)
+LAST_WINDOW_DAY = timedelta(days=d.BEHAVIOR_WINDOW_DAYS - 1)  # window = [start, start + this]
+PAST_END_START = LAST_LOG_DAY - timedelta(days=2)
 
 
 def write_inputs(tmp_path):
@@ -30,10 +33,10 @@ def write_inputs(tmp_path):
         tmp_path / "trials.parquet",
         [
             ("clean", date(2016, 1, 20)),
-            ("zero", ZERO_DAY - timedelta(days=6)),  # day 6 is the zero day
+            ("zero", ZERO_DAY - LAST_WINDOW_DAY),  # last window day is the zero day
             ("drop32", DROP_32),
-            ("drop28", DROP_28),  # window Feb 12-18 holds only the 28% day
-            ("past_end", LAST_LOG_DAY - timedelta(days=2)),  # window runs past the logs
+            ("drop28", DROP_28),  # window from Feb 12 holds only the 28% day
+            ("past_end", PAST_END_START),  # window runs past the logs
         ],
     )
 
@@ -51,8 +54,8 @@ def test_gap_days_and_the_trials_that_touch_them(tmp_path):
         ).fetchall()
     }
     assert ZERO_DAY in gaps and DROP_32 in gaps and DROP_28 not in gaps
-    assert {LAST_LOG_DAY + timedelta(days=1), LAST_LOG_DAY + timedelta(days=4)} <= gaps
-    assert max(gaps) == LAST_LOG_DAY + timedelta(days=4)  # calendar ends at the last trial day
+    assert LAST_LOG_DAY + timedelta(days=1) in gaps
+    assert max(gaps) == PAST_END_START + LAST_WINDOW_DAY  # calendar ends at the last trial day
 
     touched = dict(
         con.execute(
