@@ -119,5 +119,11 @@ BOOTSTRAP_SEED = 20171105
 # Every published aggregate has n >= 20 per cell; smaller cells are suppressed
 # or merged.
 MIN_PUBLISHED_CELL = 20
-# msno shape: 44-character base64 string ending in "=".
-MSNO_PATTERN = r"[A-Za-z0-9+/]{43}="
+# msno shape: 44-character base64 string ending in "=". The lookarounds keep it
+# from matching the tail of a longer base64 blob, such as an embedded image.
+MSNO_PATTERN = r"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{43}=(?![A-Za-z0-9+/=])"
+# Link to the public repository on the write-up page; empty until it exists
+# (public vs private depends on the Kaggle data-use check).
+PUBLIC_REPO_URL = ""
+# Where the write-up is published (GitHub Pages serves /docs).
+DOCS_DIR = ROOT / "docs"

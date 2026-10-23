@@ -1,0 +1,8 @@
+#!/bin/sh
+# Block commits that would include a KKBox user ID (msno). Enabled with:
+#   git config core.hooksPath .githooks
+if [ -x .venv/Scripts/python ]; then PY=.venv/Scripts/python
+elif [ -x .venv/bin/python ]; then PY=.venv/bin/python
+else PY=python
+fi
+exec "$PY" -m src.check_no_msno

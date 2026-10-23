@@ -162,14 +162,14 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
         Stage(
             "charts",
             "src.charts:run",
-            constants=("MIN_PUBLISHED_CELL",),
-            upstream=("trials", "campaign_rates", "completeness", "model", "bootstrap"),
+            constants=("MIN_PUBLISHED_CELL", "MIN_CAMPAIGN_TRIALS"),
+            upstream=("trials", "mix", "logs", "completeness", "features", "campaign_rates", "model", "bootstrap"),
         ),
         Stage(
             "page",
             "src.page:run",
-            constants=("MIN_PUBLISHED_CELL",),
-            upstream=("model", "bootstrap", "charts"),
+            constants=("PUBLIC_REPO_URL",),
+            upstream=("charts",),
         ),
     ]
 
