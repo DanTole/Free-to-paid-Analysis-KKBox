@@ -1,7 +1,7 @@
 r"""Pipeline runner with hash-stamped stage caches (eng review D5).
 
 Usage:
-    python -m src.pipeline ingest|stage1|logs|model|bootstrap|all
+    python -m src.pipeline ingest|campaign_rates|logs|model|bootstrap|all
     python -m src.pipeline status
 
 Each stage writes data/cache/<stage>.meta.json after it succeeds. The meta
@@ -18,12 +18,13 @@ so does everything downstream of them.
 Targets group the stages so the expensive bootstrap never runs implicitly:
 
     ingest -> trials                               (target: ingest)
-    mix -> stage1                                  (target: stage1, Day 1 "who")
+    mix -> campaign_rates                          (target: campaign_rates)
     logs -> completeness                           (target: logs, the 30 GB scan)
     features -> model ----------> charts -> page   (target: model)
                    \-> bootstrap -/                (target: bootstrap)
 
-Day 1 runs `ingest` then `stage1` without touching the listening logs.
+`ingest` then `campaign_rates` give the audience-only result without touching
+the listening logs.
 
 A target runs its stale stages in order. If a stage needs an upstream stage
 from another target and that stage is stale, the run stops and names the
@@ -106,8 +107,8 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
             upstream=("ingest", "trials"),
         ),
         Stage(
-            "stage1",
-            "src.stage1:run",
+            "campaign_rates",
+            "src.campaign_rates:run",
             constants=("MIN_CAMPAIGN_TRIALS", "MIN_MIX_LEVEL_TRIALS"),
             upstream=("trials", "mix"),
         ),
@@ -133,6 +134,12 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
         Stage(
             "features",
             "src.features:run",
+            constants=(
+                "LISTEN_MINUTES_EDGES",
+                "COMPLETION_RATE_EDGES",
+                "EARLY_SKIP_SHARE_EDGES",
+                "UNIQUE_SONGS_EDGES",
+            ),
             upstream=("trials", "mix", "logs", "completeness"),
         ),
         Stage(
@@ -140,10 +147,11 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
             "src.model:run",
             constants=(
                 "MIN_CAMPAIGN_TRIALS",
+                "MIN_MIX_LEVEL_TRIALS",
                 "MATCH_TOP_REGISTERED_VIA",
                 "DECOMPOSITION_SEED",
             ),
-            upstream=("features",),
+            upstream=("mix", "features"),
         ),
         Stage(
             "bootstrap",
@@ -155,7 +163,7 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
             "charts",
             "src.charts:run",
             constants=("MIN_PUBLISHED_CELL",),
-            upstream=("trials", "stage1", "completeness", "model", "bootstrap"),
+            upstream=("trials", "campaign_rates", "completeness", "model", "bootstrap"),
         ),
         Stage(
             "page",
@@ -168,7 +176,7 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
 
 TARGETS = {
     "ingest": ("ingest", "trials"),
-    "stage1": ("mix", "stage1"),
+    "campaign_rates": ("mix", "campaign_rates"),
     "logs": ("logs", "completeness"),
     "model": ("features", "model", "charts", "page"),
     "bootstrap": ("bootstrap",),
@@ -342,7 +350,7 @@ def main(argv: list[str] | None = None) -> int:
             for name, (stale, _, reason) in stage_status(
                 stages, definitions, definitions.RAW_DIR, definitions.CACHE_DIR
             ).items():
-                print(f"{name:<13} {'STALE' if stale else 'fresh':<6} {reason}")
+                print(f"{name:<15} {'STALE' if stale else 'fresh':<6} {reason}")
             return 0
         run_target(args.target)
         return 0

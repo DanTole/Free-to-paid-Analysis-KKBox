@@ -71,7 +71,7 @@ def convert_logs(
                      then total_secs end as total_secs,
                 not coalesce(total_secs between {float(min_secs)} and {float(max_secs)}, false) as bad_secs
             from read_csv({files}, header = true, columns = {columns})
-        ) to {sql_path(out)} (format parquet)
+        ) to {sql_path(out)} (format parquet, compression zstd)
         """
     )
     rows, bad, undated = con.execute(
@@ -193,6 +193,9 @@ def member_presence(con: duckdb.DuckDBPyConnection, logs: Path, transactions: Pa
 def run(ctx) -> list[str]:
     cache = ctx.cache_dir
     con = duckdb.connect()
+    # Large aggregations spill to disk; keep the spill inside the ignored cache,
+    # not DuckDB's default .tmp in the working directory.
+    con.execute(f"set temp_directory = {sql_path(cache / 'duckdb_tmp')}")
     check_inputs(con, cache)
     logs = cache / "user_logs.parquet"
 

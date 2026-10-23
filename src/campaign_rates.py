@@ -1,4 +1,4 @@
-"""Stage `stage1`: raw vs mix-standardized conversion per campaign (Day 1).
+"""Stage `campaign_rates`: raw vs audience-adjusted conversion per campaign.
 
 Reads trials.parquet (stage `trials`) and mix.parquet (stage `mix`).
 
@@ -14,11 +14,11 @@ predicted, and averaged, so each campaign is shown at the pooled audience mix.
 A campaign-only model is fit as a cross-check of the campaign odds ratios.
 
 Writes:
-    stage1_campaigns.parquet  campaign, n, n_converted, raw_rate (+ Wilson 95%
+    campaign_rates.parquet    campaign, n, n_converted, raw_rate (+ Wilson 95%
                               interval), std_rate, modeled.
-    stage1_models.json        both models' campaign odds ratios, convergence,
+    campaign_rates_models.json  both models' campaign odds ratios, convergence,
                               pseudo R^2, best/worst campaigns and their gaps.
-    stage1_chart1.png         draft chart 1: raw vs standardized per campaign.
+    campaign_rates.png        draft chart: raw vs standardized per campaign.
 """
 
 import json
@@ -72,7 +72,7 @@ def drop_rare_levels(data: pd.DataFrame, min_level_trials: int) -> tuple[pd.Data
     return data[keep], dropped
 
 
-def fit_stage1(df: pd.DataFrame, min_trials: int, min_level_trials: int) -> tuple[pd.DataFrame, dict]:
+def fit_campaign_rates(df: pd.DataFrame, min_trials: int, min_level_trials: int) -> tuple[pd.DataFrame, dict]:
     """df: one row per Full trial with campaign, converted and the mix columns."""
     df = df.assign(converted=df["converted"].astype(int))
     sizes = df.groupby("campaign").size()
@@ -129,7 +129,7 @@ def fit_stage1(df: pd.DataFrame, min_trials: int, min_level_trials: int) -> tupl
     return table, models
 
 
-def draw_chart1(table: pd.DataFrame, path: Path) -> None:
+def draw_campaign_chart(table: pd.DataFrame, path: Path) -> None:
     m = table[table["modeled"]].iloc[::-1]
     y = range(len(m))
     fig, ax = plt.subplots(figsize=(7, 0.45 * len(m) + 1.4))
@@ -138,7 +138,7 @@ def draw_chart1(table: pd.DataFrame, path: Path) -> None:
     ax.plot(m["std_rate"] * 100, y, "D", color="#d1793b", label="At pooled audience mix")
     ax.set_yticks(list(y), [f"{c}  (n={n:,})" for c, n in zip(m["campaign"], m["n"])])
     ax.set_xlabel("Converted to paid within 30 days of trial end (%)")
-    ax.set_title("Draft chart 1: trial conversion by campaign, raw vs mix-adjusted", fontsize=10)
+    ax.set_title("Trial conversion by campaign, raw vs mix-adjusted", fontsize=10)
     ax.grid(axis="x", alpha=0.3)
     ax.legend(loc="lower right", fontsize=8)
     fig.tight_layout()
@@ -151,8 +151,8 @@ def run(ctx) -> list[str]:
     trials = pd.read_parquet(cache / "trials.parquet")
     mix = pd.read_parquet(cache / "mix.parquet")
     df = trials.merge(mix, on=["msno", "trial_start"], how="left", validate="one_to_one")
-    table, models = fit_stage1(df, d.MIN_CAMPAIGN_TRIALS, d.MIN_MIX_LEVEL_TRIALS)
-    table.to_parquet(cache / "stage1_campaigns.parquet")
-    (cache / "stage1_models.json").write_text(json.dumps(models, indent=2))
-    draw_chart1(table, cache / "stage1_chart1.png")
-    return ["stage1_campaigns.parquet", "stage1_models.json", "stage1_chart1.png"]
+    table, models = fit_campaign_rates(df, d.MIN_CAMPAIGN_TRIALS, d.MIN_MIX_LEVEL_TRIALS)
+    table.to_parquet(cache / "campaign_rates.parquet")
+    (cache / "campaign_rates_models.json").write_text(json.dumps(models, indent=2))
+    draw_campaign_chart(table, cache / "campaign_rates.png")
+    return ["campaign_rates.parquet", "campaign_rates_models.json", "campaign_rates.png"]

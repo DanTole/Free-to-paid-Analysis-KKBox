@@ -62,6 +62,15 @@ FOLLOWUP_END = date(2017, 2, 28)
 # Behavior = trial days 0..4 for every user: the shortest kept trial lasts 5
 # days, so a 5-day window never reaches past any trial's end (2026-10-22).
 BEHAVIOR_WINDOW_DAYS = 5
+# Behavior bands among trialists who listened (user-approved 2026-10-23).
+# Each feature becomes 5 bands; band 1 is "below the first edge". Edges are
+# round numbers near the listener quintiles [measured]. Silent trialists (no
+# log row in the window) go in band 1 of every feature: days active = 0 already
+# carries silence, and a separate "none" level would duplicate it exactly.
+LISTEN_MINUTES_EDGES = (10, 50, 200, 500)
+COMPLETION_RATE_EDGES = (0.10, 0.45, 0.75, 0.90)
+EARLY_SKIP_SHARE_EDGES = (0.10, 0.30, 0.50, 0.80)
+UNIQUE_SONGS_EDGES = (4, 17, 55, 120)
 # D7: a log row with total_secs outside [0, 86400] keeps its song counts but its
 # seconds become missing; the user is flagged.
 MIN_VALID_TOTAL_SECS = 0
@@ -69,7 +78,7 @@ MAX_VALID_TOTAL_SECS = 86_400
 
 # --- Mix (who) ---------------------------------------------------------------
 TOP_CITIES = 10
-# Stage 1 drops trials in any mix level with fewer trials than this, and
+# Models drop trials in any mix level with fewer trials than this, and
 # reports them. A 1-trial signup channel and 6 trials registered after their
 # trial started never converted, which stopped the model from converging.
 MIN_MIX_LEVEL_TRIALS = 100
@@ -84,7 +93,7 @@ AGE_BAND_UPPER_BOUNDS = (24, 34)
 # 2026-10-22 together with dropping the 60-day filter.
 REG_LAG_BAND_LOWER_BOUNDS_DAYS = (0, 61, 366, 1096)
 
-# --- Log completeness (Day 2) ------------------------------------------------
+# --- Log completeness -------------------------------------------------------
 # Gap day: zero distinct log users, or the paying-member active share falls more
 # than 30% (relative) below the median of the same weekday over +/-8 weeks.
 GAP_REFERENCE_WEEKS = 8

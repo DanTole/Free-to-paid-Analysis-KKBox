@@ -7,3 +7,8 @@ matplotlib==3.11.2
 
 # dev
 pytest==9.1.1
+
+# notebooks (exploratory work in notebooks/)
+ipykernel==7.4.0
+nbconvert==7.17.2
+nbformat==5.11.1

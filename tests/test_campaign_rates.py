@@ -1,9 +1,9 @@
-"""Stage `stage1`: g-computation removes a pure audience-mix difference."""
+"""Stage `campaign_rates`: g-computation removes a pure audience-mix difference."""
 
 import pandas as pd
 import pytest
 
-from src import stage1
+from src import campaign_rates
 
 
 def campaign_rows(campaign, n_a, conv_a, n_b, conv_b):
@@ -26,7 +26,7 @@ def df():
 
 
 def test_standardized_rates_equal_when_campaigns_differ_only_by_mix(df):
-    table, models = stage1.fit_stage1(df, min_trials=100, min_level_trials=50)
+    table, models = campaign_rates.fit_campaign_rates(df, min_trials=100, min_level_trials=50)
 
     t = table.set_index("campaign")
     assert t.loc["2016-06", "raw_rate"] == pytest.approx(0.17)
@@ -43,7 +43,7 @@ def test_standardized_rates_equal_when_campaigns_differ_only_by_mix(df):
 
 
 def test_campaigns_below_the_floor_are_listed_not_modeled(df):
-    table, models = stage1.fit_stage1(df, min_trials=100, min_level_trials=50)
+    table, models = campaign_rates.fit_campaign_rates(df, min_trials=100, min_level_trials=50)
 
     small = table.set_index("campaign").loc["2016-08"]
     assert not small["modeled"] and pd.isna(small["std_rate"]) and small["n"] == 10
@@ -52,7 +52,7 @@ def test_campaigns_below_the_floor_are_listed_not_modeled(df):
 
 
 def test_wilson_interval_brackets_the_rate():
-    lo, hi = stage1.wilson(17, 100)
+    lo, hi = campaign_rates.wilson(17, 100)
     assert lo < 0.17 < hi and 0.10 < lo and hi < 0.26
 
 
@@ -61,7 +61,7 @@ def test_unconverged_fit_stops_the_stage():
         mle_retvals = {"converged": False, "iterations": 200}
 
     with pytest.raises(RuntimeError, match="mix logit did not converge"):
-        stage1.require_converged(Fit(), "mix")
+        campaign_rates.require_converged(Fit(), "mix")
 
 
 def test_rare_mix_levels_are_dropped_and_reported_so_the_fit_converges(df):
@@ -70,7 +70,7 @@ def test_rare_mix_levels_are_dropped_and_reported_so_the_fit_converges(df):
     lone = pd.DataFrame([{"campaign": "2016-06", "registered_via": "z", "converted": False}]).assign(
         city="1", age_band="25-34", gender="male", reg_lag_band="0-60"
     )
-    table, models = stage1.fit_stage1(pd.concat([df, lone]), min_trials=100, min_level_trials=50)
+    table, models = campaign_rates.fit_campaign_rates(pd.concat([df, lone]), min_trials=100, min_level_trials=50)
 
     assert models["rare_level_trials_dropped"] == {"registered_via": {"z": 1}}
     assert models["mix_model"]["converged"] and models["population_n"] == 2000
