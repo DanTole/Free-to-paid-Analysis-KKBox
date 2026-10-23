@@ -9,6 +9,7 @@ Writes bootstrap_replicates.parquet (one row per replicate) and
 bootstrap_summary.json (2.5% / 97.5% percentiles of every quantity).
 """
 
+import gc
 import json
 import time
 
@@ -31,8 +32,12 @@ def run_replicates(data: pd.DataFrame, best: str, worst: str, replicates: int, s
     for b in range(replicates):
         idx = np.concatenate([rng.choice(g, size=len(g), replace=True) for g in groups])
         sample = data.loc[idx].reset_index(drop=True)
-        out = model.decompose(model.fit(sample), sample, best, worst, rng, top_via)
-        rows.append({"replicate": b, **{q: out[q] for q in QUANTITIES}})
+        res = model.fit(sample)
+        out = model.decompose(res, sample, best, worst, rng, top_via)
+        traits = model.trait_split(res, sample, best, worst, rng)
+        rows.append({"replicate": b, **{q: out[q] for q in QUANTITIES}, **{f"trait:{g}": v for g, v in traits.items()}})
+        del res, sample
+        gc.collect()  # each fit holds a large design matrix in reference cycles
         if (b + 1) % 25 == 0:
             log(f"[bootstrap] {b + 1}/{replicates} replicates, {(time.time() - t0) / 60:.1f} min")
     return pd.DataFrame(rows)
@@ -49,7 +54,8 @@ def run(ctx) -> list[str]:
         "replicates": len(reps),
         "best": point["best"],
         "worst": point["worst"],
-        "ci95": {q: [float(reps[q].quantile(0.025)), float(reps[q].quantile(0.975))] for q in QUANTITIES},
+        "ci95": {q: [float(reps[q].quantile(0.025)), float(reps[q].quantile(0.975))]
+                 for q in [*QUANTITIES, *(c for c in reps.columns if c.startswith("trait:"))]},
     }
     (cache / "bootstrap_summary.json").write_text(json.dumps(summary, indent=2))
     return ["bootstrap_replicates.parquet", "bootstrap_summary.json"]

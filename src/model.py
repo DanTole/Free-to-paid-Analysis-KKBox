@@ -181,6 +181,52 @@ def decompose(res, frame: pd.DataFrame, best: str, worst: str, rng, top_via: int
     }
 
 
+# Audience traits grouped for the split of the "who" effect. Age and gender are
+# blank for mostly the same members, so they are one group (profile on file).
+TRAIT_GROUPS = {
+    "Signup channel": ("registered_via",),
+    "City": ("city",),
+    "Age and gender": ("age_band", "gender"),
+    "Time since registration": ("reg_lag_band",),
+}
+
+
+def trait_split(res, frame: pd.DataFrame, best: str, worst: str, rng) -> dict:
+    """Which audience traits carry the audience swap: Shapley values over TRAIT_GROUPS.
+
+    Each worst-campaign trialist takes the traits in a subset S from a random
+    best-campaign donor and keeps everything else (other traits, own behavior,
+    the worst campaign's effect). Returns each group's share of the full swap,
+    so the shares add to 1.
+    """
+    from itertools import combinations
+    from math import factorial
+
+    sig = lambda x: 1 / (1 + np.exp(-x))
+    eta = res.fittedvalues.to_numpy()
+    campaign = frame["campaign"].to_numpy()
+    W = np.flatnonzero(campaign == worst)
+    donor = rng.choice(np.flatnonzero(campaign == best), size=len(W), replace=True)
+    shift = {g: block_part(res, frame, cols)[donor] - block_part(res, frame, cols)[W] for g, cols in TRAIT_GROUPS.items()}
+    names = list(TRAIT_GROUPS)
+    n = len(names)
+    base = sig(eta[W]).mean()
+    value = {
+        S: sig(eta[W] + sum((shift[g] for g in S), np.zeros(len(W)))).mean() - base
+        for k in range(n + 1) for S in combinations(names, k)
+    }
+    phi = {
+        g: sum(
+            factorial(k) * factorial(n - k - 1) / factorial(n)
+            * (value[tuple(x for x in names if x in S or x == g)] - value[S])
+            for k in range(n) for S in combinations([x for x in names if x != g], k)
+        )
+        for g in names
+    }
+    total = value[tuple(names)]
+    return {g: float(p / total) for g, p in phi.items()}
+
+
 def activation(frame: pd.DataFrame) -> pd.DataFrame:
     """Raw and audience-adjusted conversion by days active (g-computation)."""
     res = fit(frame, ACTIVATION_FORMULA)
@@ -227,8 +273,16 @@ def run(ctx) -> list[str]:
     data, info = load_population(cache, d.MIN_CAMPAIGN_TRIALS, d.MIN_MIX_LEVEL_TRIALS)
     res = fit(data)
     best, worst, _ = best_worst(data)
-    result = decompose(res, data, best, worst, np.random.default_rng(d.DECOMPOSITION_SEED), d.MATCH_TOP_REGISTERED_VIA)
+    rng = np.random.default_rng(d.DECOMPOSITION_SEED)
+    result = decompose(res, data, best, worst, rng, d.MATCH_TOP_REGISTERED_VIA)
     result |= info | {"pseudo_r2": float(res.prsquared), "n_params": int(len(res.params))}
+    result["trait_share"] = trait_split(res, data, best, worst, rng)
+    # The best campaign is also the smallest; check the split against the next-best one.
+    rates = data.groupby("campaign")["converted"].mean()
+    runner_up = rates.drop(best).idxmax()
+    alt = decompose(res, data, runner_up, worst, rng, d.MATCH_TOP_REGISTERED_VIA)
+    result["next_best_pair"] = {k: alt[k] for k in ("best", "worst", "best_rate", "gap", "share_who", "share_what",
+                                                     "share_unexplained")}
     (cache / "model_decomposition.json").write_text(json.dumps(result, indent=2))
     coefficients(res).to_parquet(cache / "model_coefficients.parquet")
     act = activation(data)

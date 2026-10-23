@@ -4,9 +4,9 @@ Free-trial campaigns on a music-streaming service converted trialists to paid at
 
 | Part of the best-vs-worst gap | Share | 95% CI |
 |---|---:|---|
-| Who each campaign reached (signup channel, city, age, gender, time since registration) | **83%** | 74–95% |
-| What trialists did in trial days 0–4 (days active, minutes, songs, completion, skips) | **27%** | 23–32% |
-| The campaign itself | **≈ 0** (−11%) | −26% to +2% |
+| Who each campaign reached (signup channel, city, age, gender, time since registration) | **83%** | 71–96% |
+| What trialists did in their first five trial days (days active, minutes, songs, completion, skips) | **27%** | 24–32% |
+| The campaign itself | **≈ 0** (−11%) | −27% to +5% |
 
 The parts sum to more than 100% before the campaign term because a better audience and better behavior compound on the probability scale; Shapley values split that overlap evenly. The write-up is [`docs/index.html`](docs/index.html).
 
@@ -29,7 +29,7 @@ The parts sum to more than 100% before the campaign term because a better audien
    .venv\Scripts\python -m pip install -r requirements.txt
    ```
 
-3. **Pipeline.** The first time, build everything in dependency order (about 36 minutes):
+3. **Pipeline.** The first time, build everything in dependency order (about 41 minutes):
 
    ```
    .venv\Scripts\python -m src.pipeline all
@@ -43,7 +43,7 @@ The parts sum to more than 100% before the campaign term because a better audien
    | `campaign_rates` | audience traits; raw vs audience-adjusted conversion per campaign | ~35 s |
    | `logs` | one scan of the listening logs; missing-day checks | ~9 min |
    | `model` | behavior features, the who / what decomposition, charts and `docs/index.html` | ~30 s |
-   | `bootstrap` | 200 bootstrap refits of the decomposition | ~25 min |
+   | `bootstrap` | 200 bootstrap refits of the decomposition and the trait split | ~30 min |
 
    The bootstrap never runs on its own initiative. If `model` needs fresh intervals, it stops and says to run `bootstrap` first.
 

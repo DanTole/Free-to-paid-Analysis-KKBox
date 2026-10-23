@@ -4,98 +4,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What drives free-trial conversion</title>
-<meta name="description" content="A who-versus-what decomposition of 321,506 music-streaming free trials.">
+<meta name="description" content="Who a campaign reaches vs what trialists do: a decomposition of 321,506 music-streaming free trials.">
 <style>
-:root { --ink:#1f2933; --muted:#5b6670; --rule:#e3e7ec; --accent:#3b6ea8; --what:#d1793b; --bg:#ffffff; --card:#f6f8fa; }
+:root { --ink:#1f2933; --muted:#5b6670; --rule:#e3e7ec; --who:#3b6ea8; --what:#d1793b; --best:#33475b; --worst:#c2504a; --bg:#ffffff; --card:#f6f8fa; }
 * { box-sizing: border-box; }
 html { color-scheme: light; }
-body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-main { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; }
-h1 { font-size: 2rem; line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.01em; }
-h2 { font-size: 1.3rem; margin: 48px 0 8px; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 740px; margin: 0 auto; padding: 48px 20px 64px; }
+h1 { font-size: 2rem; line-height: 1.25; margin: 0 0 10px; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; margin: 60px 0 10px; }
+h2 small { color: var(--muted); font-weight: 400; font-size: .8rem; display: block; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
+h3 { font-size: 1.08rem; margin: 36px 0 6px; }
 p, li { margin: 0 0 14px; }
-.dek { color: var(--muted); font-size: 1.1rem; margin-bottom: 8px; }
-.byline { color: var(--muted); font-size: .9rem; border-bottom: 1px solid var(--rule); padding-bottom: 20px; margin-bottom: 28px; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0 8px; }
-.stat { background: var(--card); border-radius: 10px; padding: 16px; }
-.stat b { display:block; font-size: 2rem; line-height: 1.1; }
-.stat span { display:block; color: var(--muted); font-size: .85rem; margin-top: 6px; }
-.stat.who b { color: var(--accent); } .stat.what b { color: var(--what); } .stat.none b { color: var(--muted); }
-figure { margin: 24px 0; }
-figure img { width: 100%; height: auto; display: block; }
-figcaption { color: var(--muted); font-size: .85rem; margin-top: 6px; }
-table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 12px 0 20px; }
-th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
-th:first-child, td:first-child { text-align: left; }
-.tests li { margin-bottom: 10px; }
-.method { background: var(--card); border-radius: 10px; padding: 20px 22px; font-size: .92rem; margin-top: 48px; }
-.method h2 { margin-top: 0; font-size: 1.1rem; }
-footer { color: var(--muted); font-size: .85rem; margin-top: 40px; border-top: 1px solid var(--rule); padding-top: 16px; }
-@media (max-width: 560px) { .stats { grid-template-columns: 1fr; } h1 { font-size: 1.6rem; } }
+.dek { color: var(--muted); font-size: 1.1rem; margin-bottom: 6px; }
+.byline { color: var(--muted); font-size: .9rem; border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
+.cards { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 12px; margin: 16px 0 14px; }
+.card { background: var(--card); border-radius: 10px; padding: 14px 16px; }
+.card b { display: block; font-size: 1.9rem; line-height: 1.1; }
+.card span { display: block; color: var(--muted); font-size: .84rem; margin-top: 6px; line-height: 1.35; }
+.best b { color: var(--best); } .worst b { color: var(--worst); }
+figure { margin: 14px 0 10px; }
+figure img, figure svg { width: 100%; height: auto; display: block; }
+.read { border-left: 3px solid var(--rule); padding-left: 14px; }
+.takeaways { counter-reset: t; list-style: none; padding: 0; }
+.takeaways li { counter-increment: t; position: relative; padding-left: 44px; margin-bottom: 16px; }
+.takeaways li::before { content: counter(t); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 700; text-align: center; line-height: 30px; font-size: .9rem; }
+details { background: var(--card); border-radius: 10px; padding: 14px 18px; margin-top: 44px; font-size: .9rem; }
+summary { cursor: pointer; font-weight: 600; }
+details p { margin: 10px 0 0; }
+@media (max-width: 560px) { .cards { grid-template-columns: 1fr 1fr; } h1 { font-size: 1.6rem; } }
 </style>
 </head>
 <body>
 <main>
 <h1>Who a campaign reaches matters more than what trialists do</h1>
-<p class="dek">Why some free-trial campaigns convert twice as well as others: a decomposition of 321,506 free trials on a music-streaming service.</p>
-<p class="byline">Dan Toledano · October 2026 · Public data: KKBox, WSDM Cup 2018</p>
+<p class="dek">Why some free-trial campaigns convert far better than others, from 321,506 trials on a music-streaming service.</p>
+<p class="byline">Dan Toledano · October 2026</p>
 
-<p>The best free-trial campaign in this data converted <strong>8.01%</strong> of trialists to paid within 30 days of the trial ending; the worst converted <strong>3.25%</strong>. A growth team looking at that gap has to decide where to act: <em>targeting</em> (the campaigns reached different people) or <em>onboarding</em> (the trial experience differed). This analysis splits the gap between the two.</p>
-
-<div class="stats">
-  <div class="stat who"><b>83%</b><span>who each campaign reached<br>95% CI 74–95%</span></div>
-  <div class="stat what"><b>27%</b><span>what trialists did in the first five days<br>95% CI 23–32%</span></div>
-  <div class="stat none"><b>≈ 0</b><span>left for the campaign itself<br>95% CI −26% to +2%</span></div>
+<h2><small>The problem</small>Some trial campaigns convert 2.5× better than others</h2>
+<p>A free trial is a bet: the service gives away about a week of music and hopes people stay and pay. On KKBox, a music-streaming service, how often that bet paid off depended heavily on the campaign that brought people in.</p>
+<div class="cards" style="--n:3">
+  <div class="card best"><b>8.0%</b><span>paid within 30 days in the best campaign (June 2016)</span></div>
+  <div class="card worst"><b>3.2%</b><span>paid in the worst campaign (October 2016)</span></div>
+  <div class="card"><b>~2,680</b><span>extra subscribers, out of 56,282 trialists, had the worst campaign converted like the best</span></div>
 </div>
+<p>Here a "campaign" is one month of trial sign-ups: the data has no campaign ID, so each month stands in for one.</p>
+<p>To close a gap like this, a growth team needs to know where to act. Did the campaigns reach different kinds of people? Then it's a <strong>targeting</strong> problem. Or did similar people have a different first week? Then it's an <strong>onboarding</strong> problem. Suno faces the same question for its own trials; public KKBox data lets us measure the split cleanly and carry the method over.</p>
 
+<h2><small>The method</small>Two "what if" questions</h2>
+<p>To separate targeting from onboarding, we ask two questions about the worst campaign:</p>
+<figure><svg viewBox="0 0 720 230" role="img" aria-label="The conversion gap between the best and worst campaign is split by two what-if questions, same people and same habits; what is left belongs to the campaign itself." font-family="inherit"><rect x="0" y="80" width="190" height="70" rx="10" fill="#1f2933"/><text x="95" y="108" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">Conversion gap</text><text x="95" y="131" text-anchor="middle" fill="#e3e7ec" font-size="13">best − worst campaign</text><path d="M190 115 C 230 115, 230 42, 270 42" stroke="#c4cad2" stroke-width="2" fill="none"/><rect x="270" y="10" width="450" height="64" rx="10" fill="#3b6ea8" fill-opacity="0.12" stroke="#3b6ea8"/><text x="288" y="36" fill="#3b6ea8" font-size="15" font-weight="700">1. Same people</text><text x="288" y="58" fill="#1f2933" font-size="13">The worst campaign reaches the best campaign's kind of audience</text><path d="M190 115 C 230 115, 230 117, 270 117" stroke="#c4cad2" stroke-width="2" fill="none"/><rect x="270" y="85" width="450" height="64" rx="10" fill="#d1793b" fill-opacity="0.12" stroke="#d1793b"/><text x="288" y="111" fill="#d1793b" font-size="15" font-weight="700">2. Same habits</text><text x="288" y="133" fill="#1f2933" font-size="13">Those people listen like similar trialists in the best campaign</text><path d="M190 115 C 230 115, 230 192, 270 192" stroke="#c4cad2" stroke-width="2" fill="none"/><rect x="270" y="160" width="450" height="64" rx="10" fill="#9aa5b1" fill-opacity="0.12" stroke="#9aa5b1"/><text x="288" y="186" fill="#9aa5b1" font-size="15" font-weight="700">What's left</text><text x="288" y="208" fill="#1f2933" font-size="13">Anything else about that month: offer, season, execution</text></svg></figure>
+<p class="read">The first question measures <strong>who</strong> the campaign reached: signup channel, city, age, gender and how long ago people registered. The second measures <strong>what</strong> they did: how they listened in their first five trial days. Whatever gap neither question explains belongs to the campaign itself.</p>
+<p>The answers come from a statistical model that estimates each trialist's chance of paying from three things: their campaign, their profile, and how they listened in their first five days.</p>
+<p><strong>How the two swaps work.</strong> For "same people", each trialist in the worst campaign is paired with a randomly chosen trialist from the best campaign and takes on that person's profile. The model then re-estimates their chance of paying, and the rise is the part of the gap that <strong>who</strong> explains. For "same habits", each worst-campaign trialist keeps their own profile, but takes on the first-five-day listening of a best-campaign trialist who signed up through the same channel and is in the same age band. Pairing like with like means we compare the listening of similar people, not of different audiences. In both swaps the trialists stay in the worst campaign, which is what lets the leftover be pinned on the campaign.</p>
+<p>To check how certain the answers are, the whole analysis is repeated 200 times on resampled data. The ranges shown below cover 95% of those repeats.</p>
+
+<h2><small>The data</small>321,506 trials in 7 campaigns</h2>
+<p>The data comes from KKBox's public WSDM Cup 2018 release: every subscription transaction, a profile for each member, and a daily log of how much each person listened.</p>
+<div class="cards" style="--n:3">
+  <div class="card"><b>411M</b><span>days of listening, one row per person per day</span></div>
+  <div class="card"><b>7</b><span>campaigns, each a month of trial sign-ups</span></div>
+  <div class="card"><b>2015–2016</b><span>when the trials started</span></div>
+</div>
+<p>Not every free trial fits the question, so the trials were narrowed down step by step:</p>
 <figure>
-  <img src="img/split.png" alt="Shares of the conversion gap: who 83%, what 27%, campaign itself -11%.">
-  <figcaption>Share of the 4.76-point gap between 2016-06 and 2016-10. The parts add to more than 100% before the campaign term because a better audience and better behavior compound; the overlap is split evenly between them.</figcaption>
+  <img src="img/funnel.png" alt="From 582,058 free-trial transactions to 321,506 trials analyzed.">
 </figure>
+<p class="read">Each bar shows how many trials remain after one filter. We keep each person's first trial, drop odd trial lengths, keep trials with a member profile and 30 days of follow-up, drop people who paid before the trial ended, and keep the 7 biggest sign-up months. The blue bar is what the rest of this page analyzes.</p>
 
-<h2>Raw comparisons mostly measure audience</h2>
-<p>The 7 campaigns with at least 2,000 trials range from 3.25% to 8.01% raw conversion. Shown at the same audience mix, every 2016 campaign lands between 5.1% and 6.2%: the biggest campaigns looked weak because of who they brought in.</p>
+<h2><small>Global findings</small>Most of the gap is who each campaign reached</h2>
+<p>Here is how the 4.8-point gap between the best and worst campaign splits:</p>
 <figure>
-  <img src="img/campaigns.png" alt="Raw and audience-adjusted conversion for each campaign.">
-  <figcaption>Grey: raw conversion. Blue: conversion if every campaign had reached the same overall audience (g-computation from a logistic model).</figcaption>
+  <img src="img/split.png" alt="Shares of the gap: who 83%, what 27%, campaign itself −11%, with a range that crosses zero.">
 </figure>
-<table>
-  <thead><tr><th>Campaign (trial start month)</th><th>Trials</th><th>Raw</th><th>Same audience</th></tr></thead>
-  <tbody><tr><td>2015-06</td><td>102,416</td><td>3.89%</td><td>2.43%</td></tr><tr><td>2016-06</td><td>8,852</td><td>8.01%</td><td>6.16%</td></tr><tr><td>2016-07</td><td>11,248</td><td>6.56%</td><td>5.99%</td></tr><tr><td>2016-08</td><td>17,500</td><td>4.48%</td><td>5.79%</td></tr><tr><td>2016-09</td><td>28,167</td><td>4.65%</td><td>5.64%</td></tr><tr><td>2016-10</td><td>56,282</td><td>3.25%</td><td>5.11%</td></tr><tr><td>2016-11</td><td>97,048</td><td>3.97%</td><td>6.10%</td></tr></tbody>
-</table>
-
-<h2>Who: signup channel and city</h2>
-<p>The worst campaign drew 71% of its trialists through one signup channel, against 22% for the best; trialists from that channel converted at 1.4%, against 6.2% for everyone else. The same pattern holds for one city (79% vs 53% of trialists, converting at 1.7%). Those two traits carry most of the audience effect.</p>
-
-<h2>What: showing up in the first days</h2>
-<p>43% of the worst campaign's trialists never listened during the first five trial days, against 28% for the best. Listeners in the worst campaign also listened about half as long (median 53 vs 106 minutes), but finished songs at the same rate (45% vs 47%). The difference is how much people used the product, not how they reacted to what they heard.</p>
+<p class="read">Each bar is a share of the gap, and the thin line through it is the 95% range. The blue bar, who each campaign reached, explains 83% of the gap (71–96%). The orange bar, what trialists did in their first five days, explains 27% (24–32%).</p>
+<p class="read">The grey bar, the campaign itself, is what's left after both swaps. Giving the worst campaign both the best campaign's people and their habits would close slightly more than the whole gap (111%), so the leftover is a small negative number (−11%). Its range (−27% to +5%) includes zero, so the campaign itself made no measurable difference.</p>
+<p>The audience effect shows up beyond the best and worst pair. The next chart shows each campaign's actual conversion next to what it would be if it had reached the average mix of all trialists:</p>
 <figure>
-  <img src="img/silence.png" alt="Share of trialists by days with any listening, best vs worst campaign.">
-  <figcaption>Share of each campaign's trialists by days with any listening in the first five trial days.</figcaption>
+  <img src="img/campaigns.png" alt="Actual and average-audience conversion for each campaign.">
 </figure>
-<p>At the same audience, conversion climbs from <strong>1.2%</strong> for trialists who never listened to <strong>14.5%</strong> for those who listened on all five days. One active day barely moves it; the climb starts from the second.</p>
-<figure>
-  <img src="img/activation.png" alt="Conversion by days with any listening, raw and audience-adjusted.">
-  <figcaption>Conversion within 30 days by days with any listening in the first five trial days. Blue holds the audience mix fixed.</figcaption>
-</figure>
+<p class="read">Grey dots are actual conversion; blue diamonds are conversion with the average mix of people. For the 6 campaigns of 2016, the spread shrinks from 4.8 points to 1.1: they differed mostly in whom they attracted, not in how well they converted them. June 2015 is the exception: its audience was better than average, and with an average audience it would convert only 2.4%.</p>
 
-<h2>What I would test at Suno</h2>
-<p>These are hypotheses from a different product's data, framed as experiments, not claims about Suno.</p>
-<ol class="tests">
-  <li><strong>Judge acquisition sources on trial-to-paid, not trial volume.</strong> Here the two largest campaigns were among the weakest because of where their trialists came from. A holdout that shifts spend between sources would show whether conversion follows.</li>
-  <li><strong>Get silent trialists to a second active day.</strong> A randomized nudge in the first trial days for people who haven't come back, measured on conversion, not engagement. The analogue at Suno might be creating or finishing a first song; the experiment would tell.</li>
-  <li><strong>Report campaigns at a fixed audience mix.</strong> Raw campaign comparisons mostly measure who signed up. Adjusted rates make offer and creative tests comparable.</li>
+<h2><small>Findings broken down</small>What drives the gap, piece by piece</h2>
+<h3>Who: how people signed up, and where they live</h3>
+<p>The two biggest audience differences between the best and worst campaign are signup channel and city:</p>
+<figure>
+  <img src="img/audience.png" alt="Signup channel and city mix of the best and worst campaign, with each group's conversion rate.">
+</figure>
+<p class="read">Dark bars are the best campaign's trialists and red bars the worst's. Each label shows how often that group pays, across all trialists; the channel and city codes are anonymized in the data. The worst campaign leaned on signup channel 4 (71% of its trialists) and city 1 (79%), the two groups least likely to pay: 1.4% and 1.7%.</p>
+<p>Splitting the "who" share by trait confirms these two do the work:</p>
+<figure>
+  <img src="img/traits.png" alt="Share of the who effect carried by each audience trait.">
+</figure>
+<p class="read">Each bar is a trait's share of the audience effect, with its 95% range. Signup channel (56%) and city (51%) carry it. Time since registration adds little (7%), and age and gender pull slightly the other way (−14%); together the four add to 100%.</p>
+
+<h3>What: showing up in the first days</h3>
+<p>The clearest difference in behavior is how many trialists never listened at all:</p>
+<figure>
+  <img src="img/silence.png" alt="Days with any listening in the first five trial days, best vs worst campaign.">
+</figure>
+<p class="read">The bars count trialists by how many of their first five days they listened. In the worst campaign, 43% never listened, against 28% in the best.</p>
+<p>That matters, because showing up goes hand in hand with paying:</p>
+<figure>
+  <img src="img/activation.png" alt="Conversion by days with any listening, actual and with the same mix of people.">
+</figure>
+<p class="read">The grey line is what actually happened: of the trialists who listened on that many days, the share who paid. The blue line holds the mix of people fixed (same signup channels, cities, ages) and asks how many would pay at each level of listening. It still climbs, from 1.2% to 14.5%, so heavy listening isn't just a sign of a better audience. It can't rule out that people who already meant to pay listen more. And from 3 days up, the grey line sits above the blue: part of the raw climb is who heavy listeners are.</p>
+<p>Among people who did listen, the difference was how much they listened, not how they reacted to the music:</p>
+<figure>
+  <img src="img/listening.png" alt="Worst-campaign listeners' medians as a share of best-campaign listeners'.">
+</figure>
+<p class="read">The dashed line marks where the worst campaign's listeners would match the best's. They listened about half as much (50% of the minutes), but finished and skipped songs just as often. They used the product less; there's no sign they liked the music less.</p>
+
+<h2><small>Conclusion</small>Fix targeting first, then get trialists to show up</h2>
+<ol class="takeaways">
+  <li><strong>Targeting first.</strong> Most of the gap (83%) comes from whom a campaign reached, above all signup channel and city.</li>
+  <li><strong>Then activation.</strong> About a quarter (27%) comes from the first five days, and it's about showing up and listening more, not about the music itself.</li>
+  <li><strong>Compare campaigns like for like.</strong> Most of the difference between campaigns is audience. Once people and habits match, the best and worst convert about the same, so comparing raw conversion mostly compares audiences.</li>
 </ol>
+<h3>What I would test at Suno</h3>
+<ul>
+  <li>Rank acquisition sources by how many trialists end up paying, not how many sign up, using a holdout that shifts spend between sources.</li>
+  <li>Nudge trialists who haven't made anything within 24 hours of starting, in a randomized test, toward creating a first song.</li>
+  <li>Report campaign tests at a fixed audience mix, so offers and creative are compared fairly.</li>
+</ul>
 
-<section class="method">
-<h2>Method and caveats</h2>
-<p><strong>Data.</strong> 410,502,905 daily listening rows and 582,058 free-trial transactions from KKBox's public WSDM Cup 2018 release. No day of logs was missing (0 gap days found).</p>
-<p><strong>Population.</strong> First-time, $0, 7-day trials starting on or after 2015-04-01 with a complete 30-day follow-up: 329,370 trials. Trialists who paid during the trial (8,232) and trialists missing from the member file (48,147, who almost never converted, which points to an export artifact) are excluded. Months that looked like 85–99% conversion turned out to be in-trial payers or existing customers and fall out under these rules. Converted means paid within 30 days after the trial ended.</p>
-<p><strong>Model.</strong> Logistic regression of conversion on campaign, five audience traits (signup channel, city, age band, gender, time since registration) and six trial-week behavior measures in bands (days active, minutes, unique songs, completion, early skips, first listen day). The gap between the best and worst campaign is split with Shapley values over two counterfactual swaps (audience; behavior from similar trialists), keeping the worst campaign's own effect. Intervals: 200 bootstrap refits, trialists resampled within campaign.</p>
-<p><strong>Caveats.</strong> The results are associations, not causes: people who already intend to pay probably listen more. "Campaign" is the trial start month; the data has no campaign ID. Age and gender are blank for most members; dropping them changes the split by about one point. Published tables have at least 20 trialists per cell.</p>
-</section>
-
-<footer>Code, tests and the full method are in the project repository. Data: KKBox WSDM Cup 2018 (Kaggle); raw data is not redistributed.</footer>
+<details>
+  <summary>Technical details and caveats</summary>
+  <p><strong>Population.</strong> First-time, $0 trials sold as 7-day trials, whose recorded expiry falls 5–31 days after the start, starting on or after 2015-04-01, with a complete 30-day follow-up: 329,370 trials; in the 7 largest months, 321,506. Excluded: trialists who paid during the trial (8,232) and trialists missing from the member file (48,147; almost none converted, pointing to an export artifact). Converted means paid within 30 days after the trial ended.</p>
+  <p><strong>Model.</strong> Logistic regression of conversion on campaign, five audience traits and six banded behavior measures from the first five trial days. The two swaps are counterfactuals that keep the worst campaign's own effect; Shapley values share the overlap between them evenly, so their order doesn't matter. The "same habits" swap pairs trialists on signup channel and age band; since age is blank for most members, that pairing often reduces to channel plus "age unknown". Ranges are the 2.5th and 97.5th percentiles of 200 bootstrap refits, resampling trialists within each campaign.</p>
+  <p><strong>An extreme pair.</strong> The best month is also the smallest (8,852 trials). Against the next-best month (July 2016), the split is similar: 81% who, 24% what, −5% the campaign itself.</p>
+  <p><strong>Caveats.</strong> These are associations, not causes: people who already intend to pay probably listen more. "Campaign" is the trial start month. Age and gender are blank for most members; dropping them moves the split by about a point. Published cells have at least 20 trialists.</p>
+</details>
 </main>
 </body>
 </html>

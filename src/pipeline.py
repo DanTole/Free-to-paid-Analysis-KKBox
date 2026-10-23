@@ -168,7 +168,6 @@ def default_stages(defs: ModuleType = definitions) -> list[Stage]:
         Stage(
             "page",
             "src.page:run",
-            constants=("PUBLIC_REPO_URL",),
             upstream=("charts",),
         ),
     ]
