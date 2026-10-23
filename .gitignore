@@ -4,3 +4,7 @@
 .venv/
 __pycache__/
 .pytest_cache/
+
+# Local assistant instructions
+CLAUDE.md
+CLAUDE.MD
