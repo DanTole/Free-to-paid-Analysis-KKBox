@@ -50,7 +50,7 @@ def test_trial_window_keeps_days_0_to_6_sums_user_days_and_flags_bad_users(tmp_p
     csv = write_logs_csv(
         tmp_path / "user_logs.csv",
         [
-            ("u1", D(2016, 6, 30), 1, 0, 0, 0, 1, 1, 10.0),  # day -1: out
+            ("u1", D(2016, 6, 30), 1, 0, 0, 0, 1, 1, 10.0),  # the day before the trial: out
             ("u1", D(2016, 7, 1), 1, 0, 0, 0, 2, 3, 100.0),  # day 0
             ("u1", D(2016, 7, 1), 0, 1, 0, 0, 1, 2, -5.0),  # day 0 again, bad secs
             ("u1", D(2016, 7, 7), 0, 0, 0, 0, 4, 4, 200.0),  # day 6: last kept

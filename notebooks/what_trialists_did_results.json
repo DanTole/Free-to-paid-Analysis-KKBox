@@ -1,0 +1,178 @@
+{
+  "modeled_trials": 321506,
+  "best": "2016-06",
+  "worst": "2016-10",
+  "best_rate": 0.08009489380930863,
+  "worst_rate": 0.03247930066451086,
+  "gap": 0.047615593144797776,
+  "split": [
+    {
+      "index": "who",
+      "points": 3.9724721996465977,
+      "share": 0.8342796838771731,
+      "share_lo": 0.7389914389541828,
+      "share_hi": 0.9467587288319149
+    },
+    {
+      "index": "what",
+      "points": 1.305256838935364,
+      "share": 0.27412382220381293,
+      "share_lo": 0.2298269351142936,
+      "share_hi": 0.3185829621444213
+    },
+    {
+      "index": "unexplained",
+      "points": -0.5161697241021841,
+      "share": -0.108403506080986,
+      "share_lo": -0.25908844216040233,
+      "share_hi": 0.024142152302487126
+    }
+  ],
+  "days_active_pct": [
+    {
+      "days_active_band": "0",
+      "2016-06": 28.47,
+      "2016-10": 43.28,
+      "2016-10 at 2016-06 audience": 40.37,
+      "conversion": 1.04
+    },
+    {
+      "days_active_band": "1",
+      "2016-06": 23.67,
+      "2016-10": 27.15,
+      "2016-10 at 2016-06 audience": 23.06,
+      "conversion": 1.41
+    },
+    {
+      "days_active_band": "2",
+      "2016-06": 12.71,
+      "2016-10": 10.59,
+      "2016-10 at 2016-06 audience": 11.07,
+      "conversion": 3.74
+    },
+    {
+      "days_active_band": "3",
+      "2016-06": 10.1,
+      "2016-10": 7.0,
+      "2016-10 at 2016-06 audience": 8.29,
+      "conversion": 7.25
+    },
+    {
+      "days_active_band": "4",
+      "2016-06": 11.23,
+      "2016-10": 5.65,
+      "2016-10 at 2016-06 audience": 7.65,
+      "conversion": 12.26
+    },
+    {
+      "days_active_band": "5",
+      "2016-06": 13.83,
+      "2016-10": 6.33,
+      "2016-10 at 2016-06 audience": 9.55,
+      "conversion": 19.18
+    }
+  ],
+  "silent_closed_by_audience": 0.19631425909129874,
+  "listener_medians": [
+    {
+      "campaign": "2016-06",
+      "listen_minutes": 106.29221666666666,
+      "daily_unique_songs": 33.0,
+      "completion_rate": 0.46791352093342486,
+      "early_skip_share": 0.2857142857142857
+    },
+    {
+      "campaign": "2016-10",
+      "listen_minutes": 52.740325,
+      "daily_unique_songs": 17.0,
+      "completion_rate": 0.45454545454545453,
+      "early_skip_share": 0.2903225806451613
+    }
+  ],
+  "activation": [
+    {
+      "days_active": "0",
+      "n": 125972,
+      "raw_rate": 0.010399136316006731,
+      "adjusted_rate": 0.011554875459894972
+    },
+    {
+      "days_active": "1",
+      "n": 86401,
+      "raw_rate": 0.01408548512169998,
+      "adjusted_rate": 0.01572218528427764
+    },
+    {
+      "days_active": "2",
+      "n": 36689,
+      "raw_rate": 0.03739540461718771,
+      "adjusted_rate": 0.03576010061191979
+    },
+    {
+      "days_active": "3",
+      "n": 25587,
+      "raw_rate": 0.07249775276507602,
+      "adjusted_rate": 0.06346691178794092
+    },
+    {
+      "days_active": "4",
+      "n": 22311,
+      "raw_rate": 0.12258527183900318,
+      "adjusted_rate": 0.09859970526484176
+    },
+    {
+      "days_active": "5",
+      "n": 24546,
+      "raw_rate": 0.1918438849507048,
+      "adjusted_rate": 0.14488868323116652
+    }
+  ],
+  "v_what": 0.007967098584515393,
+  "behavior_group_share": {
+    "activity": 0.3989627163880532,
+    "volume": 0.46941698247537506,
+    "taste": 0.13162030113657172
+  },
+  "behavior_group_ci": {
+    "activity": [
+      0.3419425898911568,
+      0.458128449305563
+    ],
+    "volume": [
+      0.4110155919161529,
+      0.5292095728224769
+    ],
+    "taste": [
+      0.08743337665515649,
+      0.17244144956926882
+    ]
+  },
+  "robustness": [
+    {
+      "check": "Random draws repeated 20x (mean)",
+      "who": 0.8359966285910903,
+      "what": 0.27457807258529493,
+      "unexplained": -0.11057470117638513
+    },
+    {
+      "check": "Without age and gender",
+      "who": 0.8229935720126229,
+      "what": 0.27560708009892354,
+      "unexplained": -0.0986006521115465
+    },
+    {
+      "check": "Days active as the only behavior",
+      "who": 0.8259930745652481,
+      "what": 0.26443429466126195,
+      "unexplained": -0.09042736922651003
+    },
+    {
+      "check": "Other direction (best campaign given worst)",
+      "who": 0.7892355435547943,
+      "what": 0.2514110217451163,
+      "unexplained": -0.040646565299910654
+    }
+  ],
+  "what_share_draw_sd": 0.007221702268493039,
+  "pseudo_r2": 0.2570808506954323
+}
