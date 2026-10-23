@@ -62,20 +62,9 @@ The parts sum to more than 100% before the campaign term because a better audien
 
 ## Data checks
 
-- **`user_logs.csv`:** 392,106,543 data rows; ends with a newline (checked 2026-10-22 after re-extraction; an earlier copy was truncated at 112,848,597 rows). `user_logs_v2.csv`: 18,396,362 rows.
+- **`user_logs.csv`:** 392,106,543 data rows; `user_logs_v2.csv`: 18,396,362 rows.
 - **Transaction files:** `transactions.csv` runs to 2017-02-28. `transactions_v2.csv` runs to 2017-03-31 but covers only 48,667 of 527,323 trial users. Follow-up therefore ends at 2017-02-28 for everyone.
 - **Missing log days:** none. The closest day was 18% below its weekday norm, against a 30% threshold.
 - **Impossible listening times:** 208,686 log rows have a negative `total_secs` or more than 24 hours in a day. Their seconds are set to missing, and their song counts are kept.
 - **Missing member profiles:** trialists without one (47,425 eligible) converted at 0.02%, which suggests the member file drops accounts that never paid. They are excluded.
 
-## Privacy
-
-No row-level data is committed: `data/` is ignored, and published tables have at least 20 trialists per cell. [`src/check_no_msno.py`](src/check_no_msno.py) scans every committable file for strings shaped like a KKBox user ID. The pre-commit hook in [`.githooks/`](.githooks/) runs it before each commit. Enable it once with:
-
-```
-git config core.hooksPath .githooks
-```
-
----
-
-**Note on the competition labels.** The competition's `is_churn` labels are computed from transactions by `WSDMChurnLabeller.scala`, and `transactions_v2.csv` overlaps the window those labels describe. Models trained on the competition's features can partly recover the label rule from future transactions. This project doesn't use `is_churn` or the train files; it defines conversion from the transactions directly.
